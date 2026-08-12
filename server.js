@@ -4,24 +4,34 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { connectMongoDB } = require("./connection");
+
 const User = require("./models/user");
+const Movie = require("./models/movie");
+const Watch = require("./models/watch");
 const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
 const PORT = 8000;
 
-// Middleware
+// =============================
+// MIDDLEWARE
+// =============================
+
 app.use(express.json());
 
-// ===== MongoDB Connection =====
+// =============================
+// MONGODB CONNECTION
+// =============================
+
 console.log("Connecting to DB...");
 
 connectMongoDB("mongodb://127.0.0.1:27017/binge-diary")
     .then(() => console.log("MongoDB Connected"))
     .catch((err) => console.log("Mongo Error:", err));
 
-
-// ===== ROUTES =====
+// =============================
+// USER ROUTES
+// =============================
 
 // REGISTER USER
 app.post("/api/users/register", async (req, res) => {
@@ -51,6 +61,8 @@ app.post("/api/users/register", async (req, res) => {
         });
 
         const userResponse = user.toObject();
+
+        // Never send password to client
         delete userResponse.password;
 
         return res.status(201).json(userResponse);
@@ -61,7 +73,6 @@ app.post("/api/users/register", async (req, res) => {
         });
     }
 });
-
 
 // LOGIN USER
 app.post("/api/users/login", async (req, res) => {
@@ -121,7 +132,6 @@ app.post("/api/users/login", async (req, res) => {
     }
 });
 
-
 // GET LOGGED-IN USER PROFILE
 app.get("/api/users/profile", authMiddleware, async (req, res) => {
     try {
@@ -143,11 +153,11 @@ app.get("/api/users/profile", authMiddleware, async (req, res) => {
     }
 });
 
-
 // GET ALL USERS
 app.get("/api/users", async (req, res) => {
     try {
-        const users = await User.find({});
+        const users = await User.find({})
+            .select("-password");
 
         return res.json(users);
 
@@ -158,11 +168,11 @@ app.get("/api/users", async (req, res) => {
     }
 });
 
-
 // GET USER BY ID
 app.get("/api/users/:id", async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
+        const user = await User.findById(req.params.id)
+            .select("-password");
 
         if (!user) {
             return res.status(404).json({
@@ -179,15 +189,28 @@ app.get("/api/users/:id", async (req, res) => {
     }
 });
 
-
 // UPDATE USER
 app.put("/api/users/:id", async (req, res) => {
     try {
+        const { name, email } = req.body;
+
         const updatedUser = await User.findByIdAndUpdate(
             req.params.id,
-            req.body,
-            { new: true }
-        );
+            {
+                name,
+                email
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        ).select("-password");
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                msg: "User not found"
+            });
+        }
 
         return res.json(updatedUser);
 
@@ -197,7 +220,6 @@ app.put("/api/users/:id", async (req, res) => {
         });
     }
 });
-
 
 // DELETE USER
 app.delete("/api/users/:id", async (req, res) => {
@@ -215,8 +237,159 @@ app.delete("/api/users/:id", async (req, res) => {
     }
 });
 
+// =============================
+// MOVIE ROUTES
+// =============================
 
-// ===== START SERVER =====
+// CREATE MOVIE
+app.post("/api/movies", authMiddleware, async (req, res) => {
+    try {
+        const { title, genre, rating, review } = req.body;
+
+        if (!title || !genre || rating === undefined) {
+            return res.status(400).json({
+                msg: "Title, genre and rating are required"
+            });
+        }
+
+        const movie = await Movie.create({
+            title,
+            genre,
+            rating,
+            review,
+            user: req.user.userId
+        });
+
+        return res.status(201).json(movie);
+
+    } catch (error) {
+        return res.status(500).json({
+            msg: error.message
+        });
+    }
+});
+
+// GET LOGGED-IN USER'S MOVIES
+app.get("/api/movies", authMiddleware, async (req, res) => {
+    try {
+        const movies = await Movie.find({
+            user: req.user.userId
+        });
+
+        return res.json(movies);
+
+    } catch (error) {
+        return res.status(500).json({
+            msg: error.message
+        });
+    }
+});
+
+// UPDATE MY MOVIE
+app.put("/api/movies/:id", authMiddleware, async (req, res) => {
+    try {
+        const { title, genre, rating, review } = req.body;
+
+        const updatedMovie = await Movie.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                user: req.user.userId
+            },
+            {
+                title,
+                genre,
+                rating,
+                review
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        if (!updatedMovie) {
+            return res.status(404).json({
+                msg: "Movie not found or you are not allowed to update it"
+            });
+        }
+
+        return res.json(updatedMovie);
+
+    } catch (error) {
+        return res.status(500).json({
+            msg: error.message
+        });
+    }
+});
+
+// DELETE MY MOVIE
+app.delete("/api/movies/:id", authMiddleware, async (req, res) => {
+    try {
+        const deletedMovie = await Movie.findOneAndDelete({
+            _id: req.params.id,
+            user: req.user.userId
+        });
+
+        if (!deletedMovie) {
+            return res.status(404).json({
+                msg: "Movie not found or you are not allowed to delete it"
+            });
+        }
+
+        return res.json({
+            msg: "Movie deleted successfully"
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            msg: error.message
+        });
+    }
+});
+
+// =============================
+// WATCH ROUTES
+// =============================
+
+// CREATE WATCH ENTRY
+app.post("/api/watches", authMiddleware, async (req, res) => {
+    try {
+        const {
+            title,
+            type,
+            rating,
+            review,
+            watchedDate
+        } = req.body;
+
+        if (!title || !type) {
+            return res.status(400).json({
+                msg: "Title and type are required"
+            });
+        }
+
+        const watch = await Watch.create({
+            title,
+            type,
+            rating,
+            review,
+            watchedDate,
+            user: req.user.userId
+        });
+
+        return res.status(201).json(watch);
+
+    } catch (error) {
+        return res.status(500).json({
+            msg: error.message
+        });
+    }
+});
+
+// =============================
+// START SERVER
+// =============================
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
