@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const watchSchema = new mongoose.Schema(
+const watchlistSchema = new mongoose.Schema(
   {
     movie: {
       type: mongoose.Schema.Types.ObjectId,
@@ -12,21 +12,6 @@ const watchSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true
-    },
-
-    rating: {
-      type: Number,
-      min: 0,
-      max: 10
-    },
-
-    review: {
-      type: String
-    },
-
-    watchedDate: {
-      type: Date,
-      default: Date.now
     }
   },
   {
@@ -34,4 +19,15 @@ const watchSchema = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("Watch", watchSchema);
+// Same user cannot add same movie twice
+watchlistSchema.index(
+  {
+    movie: 1,
+    user: 1
+  },
+  {
+    unique: true
+  }
+);
+
+module.exports = mongoose.model("Watchlist", watchlistSchema);
