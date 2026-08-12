@@ -62,7 +62,6 @@ app.post("/api/users/register", async (req, res) => {
 
         const userResponse = user.toObject();
 
-        // Never send password to client
         delete userResponse.password;
 
         return res.status(201).json(userResponse);
@@ -104,7 +103,6 @@ app.post("/api/users/login", async (req, res) => {
             });
         }
 
-        // Generate JWT Token
         const token = jwt.sign(
             {
                 userId: user._id
@@ -348,7 +346,7 @@ app.delete("/api/movies/:id", authMiddleware, async (req, res) => {
 });
 
 // =============================
-// WATCH ROUTES
+// WATCH / DIARY ROUTES
 // =============================
 
 // CREATE WATCH ENTRY
@@ -378,6 +376,114 @@ app.post("/api/watches", authMiddleware, async (req, res) => {
         });
 
         return res.status(201).json(watch);
+
+    } catch (error) {
+        return res.status(500).json({
+            msg: error.message
+        });
+    }
+});
+
+// GET LOGGED-IN USER'S WATCH HISTORY
+app.get("/api/watches", authMiddleware, async (req, res) => {
+    try {
+        const watches = await Watch.find({
+            user: req.user.userId
+        });
+
+        return res.json(watches);
+
+    } catch (error) {
+        return res.status(500).json({
+            msg: error.message
+        });
+    }
+});
+
+// GET ONE WATCH ENTRY
+app.get("/api/watches/:id", authMiddleware, async (req, res) => {
+    try {
+        const watch = await Watch.findOne({
+            _id: req.params.id,
+            user: req.user.userId
+        });
+
+        if (!watch) {
+            return res.status(404).json({
+                msg: "Watch entry not found or you are not allowed to access it"
+            });
+        }
+
+        return res.json(watch);
+
+    } catch (error) {
+        return res.status(500).json({
+            msg: error.message
+        });
+    }
+});
+
+// UPDATE WATCH ENTRY
+app.put("/api/watches/:id", authMiddleware, async (req, res) => {
+    try {
+        const {
+            title,
+            type,
+            rating,
+            review,
+            watchedDate
+        } = req.body;
+
+        const updatedWatch = await Watch.findOneAndUpdate(
+            {
+                _id: req.params.id,
+                user: req.user.userId
+            },
+            {
+                title,
+                type,
+                rating,
+                review,
+                watchedDate
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        if (!updatedWatch) {
+            return res.status(404).json({
+                msg: "Watch entry not found or you are not allowed to update it"
+            });
+        }
+
+        return res.json(updatedWatch);
+
+    } catch (error) {
+        return res.status(500).json({
+            msg: error.message
+        });
+    }
+});
+
+// DELETE WATCH ENTRY
+app.delete("/api/watches/:id", authMiddleware, async (req, res) => {
+    try {
+        const deletedWatch = await Watch.findOneAndDelete({
+            _id: req.params.id,
+            user: req.user.userId
+        });
+
+        if (!deletedWatch) {
+            return res.status(404).json({
+                msg: "Watch entry not found or you are not allowed to delete it"
+            });
+        }
+
+        return res.json({
+            msg: "Watch entry deleted successfully"
+        });
 
     } catch (error) {
         return res.status(500).json({
