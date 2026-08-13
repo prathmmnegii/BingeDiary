@@ -1,31 +1,38 @@
 const mongoose = require("mongoose");
 
+
+// ===============================
+// MOVIE SCHEMA
+// ===============================
+
 const movieSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true
+      required: true,
+      trim: true
     },
 
     genre: {
       type: String,
+      required: true,
+      trim: true
+    },
+
+    year: {
+      type: Number,
       required: true
     },
 
     rating: {
       type: Number,
-      required: true
+      min: 0,
+      max: 10
     },
 
-    releaseYear: {
-      type: Number,
-      required: true
-    },
-
-    type: {
-      type: String,
-      enum: ["movie", "series"],
-      required: true
+    watched: {
+      type: Boolean,
+      default: false
     },
 
     user: {
@@ -34,9 +41,11 @@ const movieSchema = new mongoose.Schema(
       required: true
     }
   },
+
   {
     timestamps: true
   }
 );
+
 
 module.exports = mongoose.model("Movie", movieSchema);

@@ -9,6 +9,8 @@ const movieRoutes = require("./routes/movieRoutes");
 const watchRoutes = require("./routes/watchRoutes");
 const watchlistRoutes = require("./routes/watchlistRoutes");
 
+const errorMiddleware = require("./middleware/errorMiddleware");
+
 
 const app = express();
 
@@ -49,6 +51,13 @@ app.use("/api/movies", movieRoutes);
 app.use("/api/watches", watchRoutes);
 
 app.use("/api/watchlist", watchlistRoutes);
+
+
+// ===============================
+// GLOBAL ERROR HANDLER
+// ===============================
+
+app.use(errorMiddleware);
 
 
 // ===============================

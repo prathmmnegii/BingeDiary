@@ -1,139 +1,75 @@
 const express = require("express");
 const router = express.Router();
 
-const Movie = require("../models/movie");
 const authMiddleware = require("../middleware/authMiddleware");
+
+const {
+  getMovies,
+  getMovieStats,
+  getMovieById,
+  createMovie,
+  updateMovie,
+  deleteMovie
+} = require("../controllers/movieController");
 
 
 // ===============================
 // GET ALL MOVIES
+// SEARCH + FILTER + SORT + PAGINATION
 // ===============================
 
-router.get("/", async (req, res) => {
-  try {
-    const movies = await Movie.find();
+router.get("/", getMovies);
 
-    res.json(movies);
 
-  } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message
-    });
-  }
-});
+// ===============================
+// GET MOVIE STATISTICS
+// ===============================
+
+router.get(
+  "/stats/summary",
+  authMiddleware,
+  getMovieStats
+);
 
 
 // ===============================
 // GET SINGLE MOVIE
 // ===============================
 
-router.get("/:id", async (req, res) => {
-  try {
-    const movie = await Movie.findById(req.params.id);
-
-    if (!movie) {
-      return res.status(404).json({
-        message: "Movie not found"
-      });
-    }
-
-    res.json(movie);
-
-  } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message
-    });
-  }
-});
+router.get("/:id", getMovieById);
 
 
 // ===============================
 // CREATE MOVIE
 // ===============================
 
-router.post("/", authMiddleware, async (req, res) => {
-  try {
-    const movie = await Movie.create({
-      ...req.body,
-      user: req.user.userId
-    });
-
-    res.status(201).json(movie);
-
-  } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message
-    });
-  }
-});
+router.post(
+  "/",
+  authMiddleware,
+  createMovie
+);
 
 
 // ===============================
 // UPDATE MOVIE
 // ===============================
 
-router.put("/:id", authMiddleware, async (req, res) => {
-  try {
-    const movie = await Movie.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        user: req.user.userId
-      },
-      req.body,
-      {
-        new: true,
-        runValidators: true
-      }
-    );
-
-    if (!movie) {
-      return res.status(404).json({
-        message: "Movie not found or you are not the owner"
-      });
-    }
-
-    res.json(movie);
-
-  } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message
-    });
-  }
-});
+router.put(
+  "/:id",
+  authMiddleware,
+  updateMovie
+);
 
 
 // ===============================
 // DELETE MOVIE
 // ===============================
 
-router.delete("/:id", authMiddleware, async (req, res) => {
-  try {
-    const movie = await Movie.findOneAndDelete({
-      _id: req.params.id,
-      user: req.user.userId
-    });
-
-    if (!movie) {
-      return res.status(404).json({
-        message: "Movie not found or you are not the owner"
-      });
-    }
-
-    res.json({
-      message: "Movie deleted successfully"
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      message: "Server error",
-      error: error.message
-    });
-  }
-});
+router.delete(
+  "/:id",
+  authMiddleware,
+  deleteMovie
+);
 
 
 module.exports = router;
