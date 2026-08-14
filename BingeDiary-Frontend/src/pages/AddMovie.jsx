@@ -9,6 +9,24 @@ import Navbar from "../components/Navbar";
 
 import { createMovie } from "../services/api";
 
+const genres = [
+  "Action",
+  "Adventure",
+  "Animation",
+  "Comedy",
+  "Crime",
+  "Documentary",
+  "Drama",
+  "Fantasy",
+  "Horror",
+  "Mystery",
+  "Romance",
+  "Sci-Fi",
+  "Thriller",
+  "War",
+  "Western"
+];
+
 const AddMovie = () => {
   const navigate = useNavigate();
 
@@ -16,7 +34,7 @@ const AddMovie = () => {
     title: "",
     genre: "",
     year: "",
-    rating: "",
+    rating: 0,
     posterUrl: "",
     watched: false
   });
@@ -33,6 +51,13 @@ const AddMovie = () => {
     });
   };
 
+  const handleRating = (rating) => {
+    setForm({
+      ...form,
+      rating
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -45,7 +70,7 @@ const AddMovie = () => {
         genre: form.genre,
         year: Number(form.year),
         rating:
-          form.rating === ""
+          form.rating === 0
             ? undefined
             : Number(form.rating),
         posterUrl: form.posterUrl,
@@ -68,9 +93,11 @@ const AddMovie = () => {
         <Navbar />
 
         <div className="page-content">
+
           <div className="page-heading">
             <div>
               <h1>Add Movie</h1>
+
               <p>
                 Add a movie to your diary.
               </p>
@@ -85,6 +112,7 @@ const AddMovie = () => {
           </div>
 
           <div className="form-card">
+
             {error && (
               <div className="error-message">
                 {error}
@@ -95,13 +123,18 @@ const AddMovie = () => {
               className="movie-form"
               onSubmit={handleSubmit}
             >
+
+              {/* TITLE + GENRE */}
+
               <div className="form-row">
+
                 <div>
                   <label>
                     Movie Title
                   </label>
 
                   <input
+                    type="text"
                     name="title"
                     placeholder="Interstellar"
                     value={form.title}
@@ -115,17 +148,40 @@ const AddMovie = () => {
                     Genre
                   </label>
 
-                  <input
-                    name="genre"
-                    placeholder="Sci-Fi"
-                    value={form.genre}
-                    onChange={handleChange}
-                    required
-                  />
+                  <div className="select-wrapper">
+                    <select
+                      name="genre"
+                      value={form.genre}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">
+                        Select genre
+                      </option>
+
+                      {genres.map((genre) => (
+                        <option
+                          key={genre}
+                          value={genre}
+                        >
+                          {genre}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="select-arrow">
+                     ⌄
+                    </span>
+                  </div>
                 </div>
+
               </div>
 
+
+              {/* YEAR + RATING */}
+
               <div className="form-row">
+
                 <div>
                   <label>
                     Release Year
@@ -146,18 +202,45 @@ const AddMovie = () => {
                     Rating
                   </label>
 
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="10"
-                    name="rating"
-                    placeholder="8.7"
-                    value={form.rating}
-                    onChange={handleChange}
-                  />
+                  <div className="rating-wrapper">
+
+                    <div className="star-rating">
+
+                      {[1, 2, 3, 4, 5].map(
+                        (star) => (
+                          <button
+                            type="button"
+                            key={star}
+                            className={
+                              star <= form.rating
+                                ? "rating-star active"
+                                : "rating-star"
+                            }
+                            onClick={() =>
+                              handleRating(star)
+                            }
+                            aria-label={`Rate ${star} out of 5`}
+                          >
+                            ★
+                          </button>
+                        )
+                      )}
+
+                    </div>
+
+                    <span className="rating-value">
+                      {form.rating > 0
+                        ? `${form.rating}.0 / 5`
+                        : "Not rated"}
+                    </span>
+
+                  </div>
                 </div>
+
               </div>
+
+
+              {/* POSTER URL */}
 
               <div>
                 <label>
@@ -178,6 +261,9 @@ const AddMovie = () => {
                 </small>
               </div>
 
+
+              {/* POSTER PREVIEW */}
+
               {form.posterUrl && (
                 <div className="poster-preview">
                   <img
@@ -187,7 +273,11 @@ const AddMovie = () => {
                 </div>
               )}
 
+
+              {/* WATCHED */}
+
               <label className="checkbox-row">
+
                 <input
                   type="checkbox"
                   checked={form.watched}
@@ -200,10 +290,17 @@ const AddMovie = () => {
                   }
                 />
 
-                Already watched
+                <span>
+                  Already watched
+                </span>
+
               </label>
 
+
+              {/* SUBMIT */}
+
               <button
+                type="submit"
                 className="primary-button"
                 disabled={loading}
               >
@@ -211,6 +308,7 @@ const AddMovie = () => {
                   ? "Adding..."
                   : "Add Movie"}
               </button>
+
             </form>
           </div>
         </div>

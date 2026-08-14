@@ -5,9 +5,14 @@ const MovieCard = ({
   onDelete,
   isInWatchlist = false
 }) => {
+
+  const rating = Number(movie.rating) || 0;
+
   return (
     <div className="movie-card">
+
       <div className="poster-container">
+
         {movie.posterUrl ? (
           <img
             src={movie.posterUrl}
@@ -19,10 +24,14 @@ const MovieCard = ({
             🎬
           </div>
         )}
+
       </div>
 
       <div className="movie-info">
-        <h3>{movie.title}</h3>
+
+        <h3>
+          {movie.title}
+        </h3>
 
         <p className="movie-meta">
           {movie.genre} • {movie.year}
@@ -30,9 +39,33 @@ const MovieCard = ({
 
         {movie.rating !== undefined &&
           movie.rating !== null && (
-            <p className="movie-rating">
-              ⭐ {movie.rating}
-            </p>
+
+            <div className="movie-rating">
+
+              <span className="stars-display">
+
+                {[1, 2, 3, 4, 5].map(
+                  (star) => (
+                    <span
+                      key={star}
+                      className={
+                        star <= rating
+                          ? "filled-star"
+                          : "empty-star"
+                      }
+                    >
+                      ★
+                    </span>
+                  )
+                )}
+
+              </span>
+
+              <span className="rating-number">
+                {rating}/5
+              </span>
+
+            </div>
           )}
 
         {onWatchlist && (
@@ -69,6 +102,7 @@ const MovieCard = ({
             Delete
           </button>
         )}
+
       </div>
     </div>
   );
