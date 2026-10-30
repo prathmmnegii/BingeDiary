@@ -1,0 +1,12 @@
+<div class="page-heading"><div><h1>Add Movie</h1><p>Add a movie to your diary.</p></div><a href="/movies" class="secondary-button">← Back</a></div>
+<div class="form-card"><div class="error-message" id="form-error" hidden></div>
+<form class="movie-form" id="movie-form">
+  <div class="form-row"><div><label for="title">Movie Title</label><input id="title" name="title" type="text" placeholder="Interstellar" required></div>
+  <div><label for="genre">Genre</label><select id="genre" name="genre" required><option value="">Select genre</option><% ["Action","Adventure","Animation","Comedy","Crime","Documentary","Drama","Fantasy","Horror","Mystery","Romance","Sci-Fi","Thriller","War","Western"].forEach(g => { %><option value="<%= g %>"><%= g %></option><% }) %></select></div></div>
+  <div class="form-row"><div><label for="year">Release Year</label><input id="year" name="year" type="number" min="1888" max="2100" placeholder="2014" required></div>
+  <div><label>Rating</label><div class="rating-wrapper"><div class="star-rating" id="star-rating"><% [1,2,3,4,5].forEach(n => { %><button type="button" class="rating-star" data-rating="<%= n %>" aria-label="Rate <%= n %> out of 5">★</button><% }) %></div><span class="rating-value" id="rating-value">Not rated</span></div></div></div>
+  <div><label for="posterUrl">Poster URL</label><input id="posterUrl" name="posterUrl" type="url" placeholder="https://..."><small>Optional: paste a direct movie poster image URL.</small></div>
+  <div id="poster-preview" class="poster-preview" hidden><img id="poster-preview-image" alt="Poster preview"></div>
+  <label class="checkbox-row"><input id="watched" name="watched" type="checkbox"><span>Already watched</span></label>
+  <button type="submit" class="primary-button">Add Movie</button>
+</form></div>

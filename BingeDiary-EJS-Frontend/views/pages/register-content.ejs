@@ -1,0 +1,14 @@
+<div class="auth-page">
+  <section class="auth-left"><div class="auth-brand"><div style="font-size:38px">🎬</div><h1>Binge Diary</h1><p>Keep track of everything you watch.</p></div><div class="movie-illustration">🎥</div></section>
+  <section class="auth-card">
+    <h1>Create Account</h1><p class="auth-subtitle">Start your movie diary</p>
+    <div class="error-message" id="form-error" hidden></div>
+    <form id="register-form">
+      <label for="name">Name</label><input id="name" name="name" type="text" placeholder="Your name" autocomplete="name" required>
+      <label for="email">Email</label><input id="email" name="email" type="email" placeholder="Enter your email" autocomplete="email" required>
+      <label for="password">Password</label><input id="password" name="password" type="password" minlength="6" placeholder="At least 6 characters" autocomplete="new-password" required>
+      <button class="primary-button full" type="submit">Create Account</button>
+    </form>
+    <p class="auth-footer">Already have an account? <a href="/login">Login</a></p>
+  </section>
+</div>
